@@ -4,3 +4,5 @@ part of 'products_bloc.dart';
 abstract class ProductsEvent {}
 
 class OnFetchProducts extends ProductsEvent {}
+
+class OnConnectProductsApi extends ProductsEvent {}

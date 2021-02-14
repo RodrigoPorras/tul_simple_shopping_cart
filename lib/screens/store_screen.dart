@@ -12,25 +12,33 @@ class StoreScreen extends StatefulWidget {
 }
 
 class _StoreScreenState extends State<StoreScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
+  final ValueNotifier<bool> notifierBottomBarVisible = ValueNotifier(true);
 
-  _loadProducts() async {
-    BlocProvider.of<ProductsBloc>(context).add(OnFetchProducts());
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _loadProducts();
+  // }
 
-  void _onProductPressed(Product productSelected) {
-    Navigator.of(context).push(PageRouteBuilder(pageBuilder:
+  // _loadProducts() async {
+  //   BlocProvider.of<ProductsBloc>(context).add(OnFetchProducts());
+  // }
+
+  void _onProductPressed(Product productSelected) async {
+    notifierBottomBarVisible.value = false;
+
+    await Navigator.of(context).push(PageRouteBuilder(pageBuilder:
         (BuildContext context, Animation<double> animation1,
             Animation<double> animation2) {
       return FadeTransition(
         opacity: animation1,
-        child: ProductDetailScreen(),
+        child: ProductDetailScreen(
+          product: productSelected,
+        ),
       );
     }));
+
+    notifierBottomBarVisible.value = true;
   }
 
   @override
@@ -53,7 +61,16 @@ class _StoreScreenState extends State<StoreScreen> {
               ),
               BlocBuilder<ProductsBloc, ProductsState>(
                 builder: (context, state) {
-                  if (state is ProductsLoading) {
+                  if (state is ProductsApiConnected) {
+                    BlocProvider.of<ProductsBloc>(context)
+                        .add(OnFetchProducts());
+
+                    return Center(
+                        child: CircularProgressIndicator(
+                      strokeWidth: 4,
+                    ));
+                  } else if (state is ProductsLoading ||
+                      state is ProductsApiConnecting) {
                     return Center(
                         child: CircularProgressIndicator(
                       strokeWidth: 4,
@@ -61,6 +78,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   } else if (state is ProductsLoaded) {
                     return Expanded(
                       child: ListView.builder(
+                        padding: EdgeInsets.only(bottom: 60),
                         itemCount: state.products.length,
                         itemBuilder: (BuildContext context, int index) {
                           Product productItem = state.products[index];
@@ -83,20 +101,27 @@ class _StoreScreenState extends State<StoreScreen> {
             ],
           ),
         ),
-        Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: kToolbarHeight,
-            child: Container(
-              color: Colors.white.withOpacity(0.85),
-              child: Row(
-                children: <Widget>[
-                  Expanded(child: Icon(Icons.home_outlined)),
-                  Expanded(child: Icon(Icons.shopping_cart_outlined)),
-                ],
-              ),
-            ))
+        ValueListenableBuilder(
+          valueListenable: notifierBottomBarVisible,
+          child: Container(
+            color: Colors.white.withOpacity(0.85),
+            child: Row(
+              children: <Widget>[
+                Expanded(child: Icon(Icons.home_outlined)),
+                Expanded(child: Icon(Icons.shopping_cart_outlined)),
+              ],
+            ),
+          ),
+          builder: (BuildContext context, value, Widget child) {
+            return AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                left: 0,
+                right: 0,
+                bottom: value ? 0.0 : -kToolbarHeight,
+                height: kToolbarHeight,
+                child: child);
+          },
+        )
       ],
     ));
   }
@@ -128,20 +153,26 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               Positioned.fill(
-                child: Container(
-                  height: itemHeight,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white.withOpacity(0.95)),
+                child: Hero(
+                  tag: 'background_product${product.id}',
+                  child: Container(
+                    height: itemHeight,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white.withOpacity(0.95)),
+                  ),
                 ),
               ),
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'assets/images/common/tools.png',
-                      height: 200,
+                    Hero(
+                      tag: 'main_image ${product.id}',
+                      child: Image.asset(
+                        'assets/images/common/tools.png',
+                        height: 200,
+                      ),
                     ),
                     SizedBox(
                       height: 20,

@@ -5,6 +5,10 @@ abstract class ProductsState {}
 
 class ProductsInitial extends ProductsState {}
 
+class ProductsApiConnecting extends ProductsState {}
+
+class ProductsApiConnected extends ProductsState {}
+
 class ProductsLoading extends ProductsState {}
 
 class ProductsLoaded extends ProductsState {
