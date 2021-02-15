@@ -19,7 +19,11 @@ class OnAddTentativeProductToCar extends ShoppingCartEvent {
 
 class OnDeleteTentativeProductToCar extends ShoppingCartEvent {}
 
-class OnDeleteProductToCar extends ShoppingCartEvent {}
+class OnDeleteProductFromCar extends ShoppingCartEvent {
+  final ProductCart productCarToDelete;
+
+  OnDeleteProductFromCar(this.productCarToDelete);
+}
 
 class OnFisnishShopping extends ShoppingCartEvent {}
 
@@ -30,3 +34,15 @@ class OnRemove1ToTentativeProductQuantity extends ShoppingCartEvent {}
 class OnConnectCartsApi extends ShoppingCartEvent {}
 
 class OnFetchPendingCart extends ShoppingCartEvent {}
+
+class OnAdd1ToProductQuantity extends ShoppingCartEvent {
+  final String productCartId;
+
+  OnAdd1ToProductQuantity(this.productCartId);
+}
+
+class OnDelete1ToProductQuantity extends ShoppingCartEvent {
+  final String productCartId;
+
+  OnDelete1ToProductQuantity(this.productCartId);
+}

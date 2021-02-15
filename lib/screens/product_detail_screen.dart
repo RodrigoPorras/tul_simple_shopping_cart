@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.dart';
 import 'package:tul_simple_shopping_cart/model/product.dart';
 import 'package:tul_simple_shopping_cart/model/product_cart.dart';
-import 'package:tul_simple_shopping_cart/screens/product_shopping_cart.dart';
-import 'package:tul_simple_shopping_cart/screens/store_screen.dart';
+import 'package:tul_simple_shopping_cart/screens/product_shopping_cart_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -33,11 +32,27 @@ class ProductDetailScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: _buildCarousel(context),
-            ),
+          Column(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _buildCarousel(context),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '\$0.0',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Text(product.descripcion),
+              ),
+            ],
           ),
           ValueListenableBuilder(
             valueListenable: notifierBtnVisible,
@@ -71,11 +86,6 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     backgroundColor: Colors.black,
                     onPressed: () {
-                      ProductCart tentativeProduct = ProductCart(
-                          cartId: null, productId: product.id, quantity: 1);
-                      BlocProvider.of<ShoppingCartBloc>(context)
-                          .add(OnAddTentativeProductToCar(tentativeProduct));
-
                       _openShoppingCartScreen(context);
                     },
                   );
@@ -111,14 +121,18 @@ class ProductDetailScreen extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            PageView(
-              children: [
-                Hero(
-                    tag: 'main_image${product.id}',
-                    child: Image.asset('assets/images/common/tools.png')),
-                Image.asset('assets/images/common/tools2.png'),
-              ],
-            )
+            Hero(
+              tag: 'main_image${product.id}',
+              child: PageView(
+                children: [
+                  ...product.imagesSrc
+                      .map((src) => Image.network(src))
+                      .toList(),
+                  if (product.imagesSrc.length == 0)
+                    Image.asset('assets/images/logos/logo_tul.png'),
+                ],
+              ),
+            ),
           ],
         ),
       )
@@ -126,12 +140,20 @@ class ProductDetailScreen extends StatelessWidget {
   }
 
   void _openShoppingCartScreen(BuildContext context) async {
+    ProductCart tentativeProduct =
+        ProductCart(cartId: null, productId: product.id, quantity: 1);
+    BlocProvider.of<ShoppingCartBloc>(context)
+        .add(OnAddTentativeProductToCar(tentativeProduct));
+
     notifierBtnVisible.value = false;
     await Navigator.of(context).push(PageRouteBuilder(
         opaque: false,
         pageBuilder: (_, animation, __) {
           return FadeTransition(
-              opacity: animation, child: ProdcutShoppingCArt());
+              opacity: animation,
+              child: ProductShoppingCart(
+                product: product,
+              ));
         }));
     notifierBtnVisible.value = true;
   }

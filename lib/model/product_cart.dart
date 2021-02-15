@@ -1,5 +1,3 @@
-import 'package:tul_simple_shopping_cart/model/product.dart';
-
 class ProductCart {
   final int quantity;
   final String productId;
@@ -23,7 +21,6 @@ class ProductCart {
       };
 
   ProductCart copyWith({
-    product,
     quantity,
     productId,
     cartId,

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tul_simple_shopping_cart/bloc/products/products_bloc.dart';
+import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.dart';
+import 'package:tul_simple_shopping_cart/colors/app_colors.dart';
 import 'package:tul_simple_shopping_cart/model/product.dart';
+import 'package:tul_simple_shopping_cart/model/product_cart.dart';
 import 'package:tul_simple_shopping_cart/screens/product_detail_screen.dart';
+import 'package:tul_simple_shopping_cart/screens/product_shopping_cart_screen.dart';
+import 'package:tul_simple_shopping_cart/screens/shopping_cart_screen.dart';
+import 'package:tul_simple_shopping_cart/widgets/widgets.dart';
 
 class StoreScreen extends StatefulWidget {
   const StoreScreen({Key key}) : super(key: key);
@@ -53,7 +59,7 @@ class _StoreScreenState extends State<StoreScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 15.0, left: 10, right: 10),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
                 'assets/images/logos/logo_tul.png',
@@ -64,17 +70,10 @@ class _StoreScreenState extends State<StoreScreen> {
                   if (state is ProductsApiConnected) {
                     BlocProvider.of<ProductsBloc>(context)
                         .add(OnFetchProducts());
-
-                    return Center(
-                        child: CircularProgressIndicator(
-                      strokeWidth: 4,
-                    ));
+                    return CircularProgressIndicatorTul();
                   } else if (state is ProductsLoading ||
                       state is ProductsApiConnecting) {
-                    return Center(
-                        child: CircularProgressIndicator(
-                      strokeWidth: 4,
-                    ));
+                    return CircularProgressIndicatorTul();
                   } else if (state is ProductsLoaded) {
                     return Expanded(
                       child: ListView.builder(
@@ -108,7 +107,35 @@ class _StoreScreenState extends State<StoreScreen> {
             child: Row(
               children: <Widget>[
                 Expanded(child: Icon(Icons.home_outlined)),
-                Expanded(child: Icon(Icons.shopping_cart_outlined)),
+                Expanded(
+                    child: BlocBuilder<ShoppingCartBloc, ShoppingCartState>(
+                  builder: (context, state) {
+                    int totalProducts = 0;
+                    if (state.currentProductsOnCart.length > 0) {
+                      totalProducts = state.currentProductsOnCart.fold(
+                          0, (totalAmount, p) => totalAmount + p.quantity);
+                    }
+
+                    return InkWell(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(state.currentProductsOnCart.length > 0
+                              ? Icons.shopping_cart
+                              : Icons.shopping_cart_outlined),
+                          Text(totalProducts > 0 ? '$totalProducts' : '')
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ShoppingCart()),
+                        );
+                      },
+                    );
+                  },
+                )),
               ],
             ),
           ),
@@ -164,58 +191,95 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Hero(
-                      tag: 'main_image ${product.id}',
-                      child: Image.asset(
-                        'assets/images/common/tools.png',
-                        height: 200,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text(
-                      product.nombre,
-                      style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  bottom: 20,
-                  left: 20,
-                  child: Icon(
-                    Icons.favorite_border,
-                  )),
-              Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: Icon(
-                    Icons.shopping_cart,
-                  )),
-              Align(
-                alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: Text(
-                    '\$0',
-                    style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Hero(
+                        tag: 'main_image ${product.id}',
+                        child: product.imagesSrc != null
+                            ? Image.network(product.imagesSrc.first,
+                                height: 150)
+                            : Image.asset(
+                                'assets/images/common/tools.png',
+                                height: 150,
+                              ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        product.nombre,
+                        style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '\$0',
+                        style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          _openShoppingCartScreen(context);
+                        },
+                        child: BlocBuilder<ShoppingCartBloc, ShoppingCartState>(
+                          builder: (context, state) {
+                            int currentAdded = 0;
+
+                            try {
+                              currentAdded = state.currentProductsOnCart
+                                  .firstWhere(
+                                      (pc) => pc.productId == product.id)
+                                  .quantity;
+                            } catch (e) {}
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                    currentAdded > 0
+                                        ? Icons.shopping_cart
+                                        : Icons.shopping_cart_outlined,
+                                    size: 30),
+                                Text(currentAdded > 0 ? '$currentAdded' : '',
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold))
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _openShoppingCartScreen(BuildContext context) async {
+    ProductCart tentativeProduct =
+        ProductCart(cartId: null, productId: product.id, quantity: 1);
+    BlocProvider.of<ShoppingCartBloc>(context)
+        .add(OnAddTentativeProductToCar(tentativeProduct));
+
+    await Navigator.of(context).push(PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (_, animation, __) {
+          return FadeTransition(
+              opacity: animation,
+              child: ProductShoppingCart(
+                product: product,
+              ));
+        }));
   }
 }

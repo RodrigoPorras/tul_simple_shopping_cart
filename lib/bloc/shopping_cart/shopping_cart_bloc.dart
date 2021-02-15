@@ -27,7 +27,8 @@ class ShoppingCartBloc extends Bloc<ShoppingCartEvent, ShoppingCartState> {
       } else {
         List<ProductCart> productsCartPending =
             await cartRepo.fetchPendingProductsCart(pendingCartId);
-        yield state.copyWith(currentProductsOnCart: productsCartPending);
+        yield state.copyWith(
+            currentProductsOnCart: productsCartPending, cartId: pendingCartId);
       }
     } else if (event is OnAddTentativeProductToCar) {
       ProductCart tentativeProduct;
@@ -40,7 +41,7 @@ class ShoppingCartBloc extends Bloc<ShoppingCartEvent, ShoppingCartState> {
         tentativeProduct = event.tentativeProductCar;
       }
 
-      yield state.copyWith(tentativeProduct: tentativeProduct);
+      yield state.copyWith(tentativeProduct: tentativeProduct, shopping: true);
     } else if (event is OnAdd1ToTentativeProductQuantity) {
       ProductCart oldTentativeProduct = state.tentativeProduct;
       int newQuantity = oldTentativeProduct.quantity + 1;
@@ -60,42 +61,98 @@ class ShoppingCartBloc extends Bloc<ShoppingCartEvent, ShoppingCartState> {
 
       yield state.copyWith(tentativeProduct: editedTentativeProduct);
     } else if (event is OnAddProductToCar) {
-      if (state.currentProductsOnCart.length == 0) {
+      if (state.cartId == null || state.cartId.isEmpty) {
         String idNewCart = await cartRepo.createNewCart();
 
         ProductCart productCart = event.productCar.copyWith(cartId: idNewCart);
 
-        cartRepo.createNewProductCart(productCart);
+        ProductCart newProductCart =
+            await cartRepo.createNewProductCart(productCart);
 
-        List<ProductCart> productCarts = [productCart];
+        List<ProductCart> productCarts = [newProductCart];
 
-        yield state.copyWith(currentProductsOnCart: productCarts);
+        yield state.copyWith(
+            currentProductsOnCart: productCarts, cartId: idNewCart);
       } else {
         ProductCart productCart;
 
         if (event.productCar.cartId == null) {
-          productCart = event.productCar
-              .copyWith(cartId: state.currentProductsOnCart.first.cartId);
+          productCart = event.productCar.copyWith(cartId: state.cartId);
         } else {
           productCart = event.productCar;
         }
 
-        cartRepo.createNewProductCart(productCart);
+        ProductCart newProductCart =
+            await cartRepo.createNewProductCart(productCart);
 
         if (state.currentProductsOnCart
-            .any((pc) => pc.productId == productCart.productId)) {
+            .any((pc) => pc.productId == newProductCart.productId)) {
           List<ProductCart> productsCartCopy = state.currentProductsOnCart;
 
           productsCartCopy
-              .removeWhere((pc) => pc.productId == productCart.productId);
+              .removeWhere((pc) => pc.productId == newProductCart.productId);
         }
         List<ProductCart> productCarts = [
           ...state.currentProductsOnCart,
-          productCart
+          newProductCart
         ];
 
         yield state.copyWith(currentProductsOnCart: productCarts);
       }
+    } else if (event is OnDeleteProductFromCar) {
+      await cartRepo.deleteProductFromCart(event.productCarToDelete);
+
+      List<ProductCart> newProductCars = state.currentProductsOnCart;
+
+      newProductCars.removeWhere((p) => p.id == event.productCarToDelete.id);
+
+      yield state.copyWith(currentProductsOnCart: newProductCars);
+    } else if (event is OnAdd1ToProductQuantity) {
+      List<ProductCart> newProductCars = state.currentProductsOnCart;
+
+      ProductCart productCartSelected =
+          newProductCars.firstWhere((p) => p.id == event.productCartId);
+
+      newProductCars.removeWhere((p) => p.id == event.productCartId);
+
+      int newQuantity = productCartSelected.quantity + 1;
+
+      ProductCart editedProductCart =
+          productCartSelected.copyWith(quantity: newQuantity);
+
+      newProductCars.add(editedProductCart);
+
+      cartRepo.updateProductCart(editedProductCart);
+
+      yield state.copyWith(currentProductsOnCart: newProductCars);
+    } else if (event is OnDelete1ToProductQuantity) {
+      List<ProductCart> newProductCars = state.currentProductsOnCart;
+
+      ProductCart productCartSelected =
+          newProductCars.firstWhere((p) => p.id == event.productCartId);
+
+      newProductCars.removeWhere((p) => p.id == event.productCartId);
+
+      int newQuantity = (productCartSelected.quantity - 1) <= 0
+          ? 1
+          : productCartSelected.quantity - 1;
+
+      ProductCart editedProductCart =
+          productCartSelected.copyWith(quantity: newQuantity);
+
+      newProductCars.add(editedProductCart);
+
+      cartRepo.updateProductCart(editedProductCart);
+
+      yield state.copyWith(currentProductsOnCart: newProductCars);
+    } else if (event is OnFisnishShopping) {
+      await cartRepo.updateStatusCart(
+        state.cartId,
+        'completed',
+      );
+
+      yield state.copyWith(
+          cartId: '', currentProductsOnCart: [], shopping: false);
     }
   }
 }

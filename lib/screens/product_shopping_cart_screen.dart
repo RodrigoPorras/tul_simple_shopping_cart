@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.dart';
+import 'package:tul_simple_shopping_cart/model/product.dart';
 
 const _btnShoppingSizeWidth = 170.0;
 const _btnShoppingSizeHeight = 60.0;
@@ -8,16 +9,17 @@ const _btnShoppingCircularSize = 60.0;
 const _finalImgSize = 30;
 const _imgSize = 120;
 
-class ProdcutShoppingCArt extends StatefulWidget {
-  const ProdcutShoppingCArt({Key key}) : super(key: key);
+class ProductShoppingCart extends StatefulWidget {
+  final Product product;
+
+  const ProductShoppingCart({Key key, this.product}) : super(key: key);
 
   @override
-  _ProdcutShoppingCArtState createState() => _ProdcutShoppingCArtState();
+  _ProductShoppingCartState createState() => _ProductShoppingCartState();
 }
 
-class _ProdcutShoppingCArtState extends State<ProdcutShoppingCArt>
+class _ProductShoppingCartState extends State<ProductShoppingCart>
     with SingleTickerProviderStateMixin {
-  @override
   AnimationController _controller;
   Animation _animationResize;
   Animation _animationMovementIn;
@@ -115,6 +117,27 @@ class _ProdcutShoppingCArtState extends State<ProdcutShoppingCArt>
                       width: panelShoppingSizeWidth,
                       child: _getShoppingPanel(context),
                     ),
+                  Positioned(
+                      top: size.height * 0.40,
+                      right: 6,
+                      child: TweenAnimationBuilder(
+                        builder: (BuildContext context, value, Widget child) {
+                          return Transform.translate(
+                            offset: Offset(0.0, value * size.height * 0.6),
+                            child: child,
+                          );
+                        },
+                        duration: Duration(milliseconds: 300),
+                        tween: Tween(begin: 1.0, end: 0.0),
+                        curve: Curves.easeIn,
+                        child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: Colors.black,
+                              size: 30,
+                            ),
+                            onPressed: () => Navigator.pop(context)),
+                      )),
                   if (_animationResize.value == 1)
                     Positioned(
                       top: size.height * 0.81,
@@ -233,7 +256,7 @@ class _ProdcutShoppingCArtState extends State<ProdcutShoppingCArt>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ))
             ],
@@ -275,8 +298,23 @@ class _ProdcutShoppingCArtState extends State<ProdcutShoppingCArt>
                   ? Radius.circular(0)
                   : Radius.circular(30),
             )),
-        child: Column(
-          children: [],
+        child: Padding(
+          padding: const EdgeInsets.only(top: 15.0),
+          child: Column(
+            children: [
+              widget.product.imagesSrc != null
+                  ? Image.network(
+                      widget.product.imagesSrc.first,
+                      height: (250 * _animationResize.value).clamp(25.0, 250.0),
+                    )
+                  : SizedBox.shrink(),
+              if (_animationResize.value == 1)
+                Text(
+                  widget.product.nombre,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                )
+            ],
+          ),
         ),
       ),
     );
