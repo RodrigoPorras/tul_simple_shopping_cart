@@ -1,4 +1,4 @@
-# tul_simple_shopping_cart
+# Tul simple shopping cart
 
 Flutter app that shows a basic shopping cart
 
