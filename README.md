@@ -1,6 +1,12 @@
 # tul_simple_shopping_cart
 
-A new Flutter project.
+Flutter app that shows a basic shopping cart
+
+<a href="https://github.com/RodrigoPorras/tul_simple_shopping_cart/tree/master/apks/" download>Apks folder </a>
+
+preview
+
+<img src="https://github.com/RodrigoPorras/tul_simple_shopping_cart/tree/master/gif/tul_app.gif" height="500" />
 
 ## Getting Started
 
