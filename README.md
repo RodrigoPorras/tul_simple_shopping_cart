@@ -6,8 +6,7 @@ Flutter app that shows a basic shopping cart
 
 preview
 
-<img src="https://github.com/RodrigoPorras/tul_simple_shopping_cart/tree/master/gif/tul_app.gif" height="500" />
-
+<img src="https://github.com/RodrigoPorras/tul_simple_shopping_cart/blob/master/gif/tul_app.gif" height="500" />
 ## Getting Started
 
 This project is a starting point for a Flutter application.
