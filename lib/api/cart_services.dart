@@ -75,6 +75,7 @@ class CartServicesFromFirebase extends CartRepo {
   @override
   Future<void> connectAPI() async {
     await Firebase.initializeApp();
+
     carts = FirebaseFirestore.instance.collection('carts');
     productCarts = FirebaseFirestore.instance.collection('product_carts');
   }

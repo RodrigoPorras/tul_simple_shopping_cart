@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.dart';
 import 'package:tul_simple_shopping_cart/model/product.dart';
+import 'package:tul_simple_shopping_cart/widgets/widgets.dart';
 
 const _btnShoppingSizeWidth = 170.0;
 const _btnShoppingSizeHeight = 60.0;
@@ -303,8 +304,8 @@ class _ProductShoppingCartState extends State<ProductShoppingCart>
           child: Column(
             children: [
               widget.product.imagesSrc != null
-                  ? Image.network(
-                      widget.product.imagesSrc.first,
+                  ? CacheImage(
+                      src: widget.product.imagesSrc.first,
                       height: (250 * _animationResize.value).clamp(25.0, 250.0),
                     )
                   : SizedBox.shrink(),

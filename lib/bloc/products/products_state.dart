@@ -17,4 +17,4 @@ class ProductsLoaded extends ProductsState {
   ProductsLoaded({this.products});
 }
 
-class ProductsError extends ProductsState {}
+class ProductsZero extends ProductsState {}

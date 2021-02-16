@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:tul_simple_shopping_cart/bloc/products/products_bloc.dart';
 import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.dart';
-import 'package:tul_simple_shopping_cart/colors/app_colors.dart';
 import 'package:tul_simple_shopping_cart/model/product.dart';
 import 'package:tul_simple_shopping_cart/model/product_cart.dart';
 import 'package:tul_simple_shopping_cart/screens/product_detail_screen.dart';
@@ -19,16 +19,6 @@ class StoreScreen extends StatefulWidget {
 
 class _StoreScreenState extends State<StoreScreen> {
   final ValueNotifier<bool> notifierBottomBarVisible = ValueNotifier(true);
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _loadProducts();
-  // }
-
-  // _loadProducts() async {
-  //   BlocProvider.of<ProductsBloc>(context).add(OnFetchProducts());
-  // }
 
   void _onProductPressed(Product productSelected) async {
     notifierBottomBarVisible.value = false;
@@ -74,6 +64,12 @@ class _StoreScreenState extends State<StoreScreen> {
                   } else if (state is ProductsLoading ||
                       state is ProductsApiConnecting) {
                     return CircularProgressIndicatorTul();
+                  } else if (state is ProductsZero) {
+                    return EmptyProducts(
+                      message: 'No hay productos',
+                      messageForTap: 'Toca para cargar de nuevo',
+                      onTap: _recargarProductos,
+                    );
                   } else if (state is ProductsLoaded) {
                     return Expanded(
                       child: ListView.builder(
@@ -152,6 +148,10 @@ class _StoreScreenState extends State<StoreScreen> {
       ],
     ));
   }
+
+  _recargarProductos() {
+    BlocProvider.of<ProductsBloc>(context).add(OnFetchProducts());
+  }
 }
 
 class ProductCard extends StatelessWidget {
@@ -199,8 +199,8 @@ class ProductCard extends StatelessWidget {
                       Hero(
                         tag: 'main_image ${product.id}',
                         child: product.imagesSrc != null
-                            ? Image.network(product.imagesSrc.first,
-                                height: 150)
+                            ? CacheImage(
+                                src: product.imagesSrc.first, height: 150)
                             : Image.asset(
                                 'assets/images/common/tools.png',
                                 height: 150,

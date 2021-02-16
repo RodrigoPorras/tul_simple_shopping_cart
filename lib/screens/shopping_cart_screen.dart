@@ -6,6 +6,7 @@ import 'package:tul_simple_shopping_cart/colors/app_colors.dart';
 import 'package:tul_simple_shopping_cart/model/product.dart';
 import 'package:tul_simple_shopping_cart/model/product_cart.dart';
 import 'package:tul_simple_shopping_cart/screens/buy_screen.dart';
+import 'package:tul_simple_shopping_cart/widgets/widgets.dart';
 
 class ShoppingCart extends StatelessWidget {
   const ShoppingCart({Key key}) : super(key: key);
@@ -149,8 +150,8 @@ class ShoppingCart extends StatelessWidget {
               children: [
                 Expanded(
                   child: Center(
-                    child: Image.network(
-                      product.imagesSrc.first,
+                    child: CacheImage(
+                      src: product.imagesSrc.first,
                       height: 70,
                     ),
                   ),
@@ -178,13 +179,15 @@ class ShoppingCart extends StatelessWidget {
                                 ),
                                 onPressed: () async {
                                   if (productCart.quantity - 1 <= 0) {
-                                    bool resp = await dialogTul(
+                                    bool resp = await showDialog(
                                         context: context,
-                                        title: 'Eliminar Producto',
-                                        message:
-                                            'Desea elimiar este producto del carrito?',
-                                        ok: 'Si',
-                                        cancel: 'No');
+                                        builder: (context) => DialogTul(
+                                            context: context,
+                                            title: 'Eliminar Producto',
+                                            message:
+                                                'Desea elimiar este producto del carrito?',
+                                            ok: 'Si',
+                                            cancel: 'No'));
 
                                     if (resp == null) {
                                       return;
@@ -235,83 +238,6 @@ class ShoppingCart extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Future<bool> dialogTul(
-      {@required context,
-      @required String title,
-      @required String message,
-      @required String ok,
-      String cancel,
-      Function actionOk,
-      Function actionCancel}) {
-    return showDialog(
-      context: context,
-      builder: (context) => new AlertDialog(
-        title: new Text(
-          title,
-          style: TextStyle(color: base_color),
-          textAlign: TextAlign.center,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(message, textAlign: TextAlign.center),
-            SizedBox(
-              height: 30.0,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                cancel != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.3,
-                          height: 40.0,
-                          child: MaterialButton(
-                            onPressed: () {
-                              if (actionCancel != null) actionCancel();
-
-                              Navigator.pop(context, false);
-                            },
-                            color: Colors.grey,
-                            child: Text(
-                              cancel,
-                              style: TextStyle(color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      )
-                    : SizedBox.shrink(),
-                SizedBox(width: 10.0),
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: 40.0,
-                    child: MaterialButton(
-                      onPressed: () {
-                        if (actionOk != null) actionOk();
-
-                        Navigator.pop(context, true);
-                      },
-                      color: base_color,
-                      child: Text(
-                        ok,
-                        style: TextStyle(color: Colors.white),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          ],
         ),
       ),
     );

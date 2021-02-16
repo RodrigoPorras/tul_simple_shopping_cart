@@ -57,9 +57,14 @@ class ProductServicesFirebase extends ProductsRepo {
   CollectionReference products;
 
   @override
+  Future<void> connectAPI() async {
+    await Firebase.initializeApp();
+    products = FirebaseFirestore.instance.collection('products');
+  }
+
+  @override
   Future<List<Product>> getProductList() async {
     var collection = await products.get();
-
     List<Product> fetchProducts = collection.docs
         .map((queryDocumentSnapshot) => Product.fromMap(
             queryDocumentSnapshot.data()
@@ -67,11 +72,5 @@ class ProductServicesFirebase extends ProductsRepo {
         .toList();
 
     return fetchProducts;
-  }
-
-  @override
-  Future<void> connectAPI() async {
-    await Firebase.initializeApp();
-    products = FirebaseFirestore.instance.collection('products');
   }
 }

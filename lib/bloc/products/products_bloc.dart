@@ -18,12 +18,17 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   Stream<ProductsState> mapEventToState(ProductsEvent event) async* {
     if (event is OnConnectProductsApi) {
       yield ProductsApiConnecting();
+
       await productsRepo.connectAPI();
+
       yield ProductsApiConnected();
     } else if (event is OnFetchProducts) {
       yield ProductsLoading();
       products = await productsRepo.getProductList();
-      yield ProductsLoaded(products: products);
+      if (products.length > 0)
+        yield ProductsLoaded(products: products);
+      else
+        yield ProductsZero();
     }
   }
 }

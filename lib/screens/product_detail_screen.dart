@@ -4,6 +4,7 @@ import 'package:tul_simple_shopping_cart/bloc/shopping_cart/shopping_cart_bloc.d
 import 'package:tul_simple_shopping_cart/model/product.dart';
 import 'package:tul_simple_shopping_cart/model/product_cart.dart';
 import 'package:tul_simple_shopping_cart/screens/product_shopping_cart_screen.dart';
+import 'package:tul_simple_shopping_cart/widgets/widgets.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -126,7 +127,7 @@ class ProductDetailScreen extends StatelessWidget {
               child: PageView(
                 children: [
                   ...product.imagesSrc
-                      .map((src) => Image.network(src))
+                      .map((src) => CacheImage(src: src))
                       .toList(),
                   if (product.imagesSrc.length == 0)
                     Image.asset('assets/images/logos/logo_tul.png'),
